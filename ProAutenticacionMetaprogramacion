@@ -1,0 +1,113 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Reflection;
+
+
+using MetaprogramacionAutenticacion;
+
+// Definición de la clase Usuario
+public class Usuario
+{
+    public string Nombre { get; set; }
+    public string Contraseña { get; set; }
+}
+
+// Clase del sistema de autenticación
+public class SistemaAutenticacion
+{
+    private List<Usuario> usuarios;
+
+    public SistemaAutenticacion()
+    {
+        // Simulación de una base de datos simple de usuarios.
+        usuarios = new List<Usuario>
+        {
+            new Usuario { Nombre = "usuario1", Contraseña = "clave1" },
+            new Usuario { Nombre = "usuario2", Contraseña = "clave2" }
+        };
+    }
+
+    public void Autenticar(string nombreUsuario, string contraseña)
+    {
+        var usuario = usuarios.FirstOrDefault(u => u.Nombre == nombreUsuario);
+        if (usuario == null)
+        {
+            Console.WriteLine("Usuario no encontrado.");
+            return;
+        }
+
+        // Validación de la contraseña
+        if (usuario.Contraseña == contraseña)
+        {
+            Console.WriteLine("Autenticación normal exitosa!");
+        }
+        else
+        {
+            Console.WriteLine("Contraseña incorrecta.");
+        }
+    }
+}
+
+// Clase que usa T4 Templates para generar código de validación
+// Esta clase será generada automáticamente a partir del archivo T4 (GenerarValidacion.tt)
+
+//public class ValidadorUsuario
+//{
+//    public bool ValidarCredenciales(string nombreUsuario, string contraseña)
+//    {
+//        // Generación dinámica de código de validación (será generado por el T4 template)
+//        if (nombreUsuario == "usuario1" && contraseña == "clave1")
+//        {
+//            return true;
+//        }
+//        return false;
+//    }
+//}
+
+// Clase que usa Reflection para la autenticación dinámica
+public class SistemaAutenticacionDinamico
+{
+    public void AutenticarDinamicamente(string nombreUsuario, string contraseña)
+    {
+        var tipoUsuario = typeof(Usuario);
+        var propiedadNombre = tipoUsuario.GetProperty("Nombre");
+        var propiedadContraseña = tipoUsuario.GetProperty("Contraseña");
+
+        // Suponemos que tenemos una instancia de usuario
+        var usuario = new Usuario { Nombre = nombreUsuario, Contraseña = contraseña };
+        string User_Nombre,User_Contraseña;
+        User_Nombre = propiedadNombre.GetValue(usuario).ToString();
+        User_Contraseña = propiedadContraseña.GetValue(usuario).ToString();
+
+        // Accedemos a las propiedades usando reflection
+        if (User_Nombre  == nombreUsuario && User_Contraseña == contraseña)
+        {
+            Console.WriteLine("Autenticación dinámica exitosa!");
+        }
+        else
+        {
+            Console.WriteLine("Autenticación dinámica fallida!");
+        }
+    }
+}
+
+// Programa principal que utiliza las clases anteriores
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Sistema de autenticación básico
+        var autenticacion = new SistemaAutenticacion();
+        autenticacion.Autenticar("usuario1", "clave11");
+
+        // Sistema de autenticación dinámica usando reflection
+        var autenticacionDinamica = new SistemaAutenticacionDinamico();
+        autenticacionDinamica.AutenticarDinamicamente("usuario1", "clave1");
+
+        // Usamos el ValidadorUsuario que es generado por el T4 template
+        var validador = new ValidadorUsuario();
+        bool resultado = validador.ValidarCredenciales("usuario1", "clave11");
+        Console.WriteLine($"Resultado validación T4: {resultado}");
+    }
+}

@@ -1,0 +1,98 @@
+#include <iostream>
+#include <type_traits>
+#include <string>
+
+// Macro para habilitar o deshabilitar autenticación basada en roles
+
+#define HABILITAR_AUTH_ENROLES
+
+// Clase Usuario
+class Usuario
+{
+  public:
+    std::string Nombre;
+    std::string Contraseña;
+  #ifdef HABILITAR_AUTH_ENROLES
+    std::string Role;
+  #endif
+
+    Usuario(const std::string& u, const std::string& p
+         #ifdef HABILITAR_AUTH_ENROLES
+                , const std::string& r
+         #endif
+        ) : Nombre(u), Contraseña(p)
+            #ifdef HABILITAR_AUTH_ENROLES
+            , Role(r)
+            #endif
+    {
+    
+    
+    }
+};
+
+// SFINAE para verificar si el tipo de usuario tiene un rol
+template<typename T>
+class Tiene_Rol 
+{
+  private:
+      //Sobrecarga de la función Check
+      template<typename U> static auto check(int) -> decltype(std::declval<U>().role, std::true_type());
+
+      template<typename> static std::false_type check(...);
+  public:
+      //Llama a check<T>(0), lo que elige la mejor sobrecarga, 
+      //Si encuentra al atrubuto "role" en la clase entonces devuelve true_type() = true, caso contrario false_type() = false
+      static constexpr bool value = decltype(check<T>(0))::value;
+};
+
+// Clase Autenticador con Template
+template<typename T>
+class Autenticador
+{
+  public:
+    static bool Autenticar(const T& usuario, const std::string& input_contraseña
+  #ifdef HABILITAR_AUTH_ENROLES
+        , const std::string& required_role = ""
+  #endif
+    ) 
+    
+    {
+        if (usuario.Contraseña != input_contraseña) 
+            return false;
+
+      #ifdef HABILITAR_AUTH_ENROLES
+        if constexpr (Tiene_Rol<T>::value)
+        {
+            if (required_role != "" && usuario.Role != required_role) 
+                return false;
+        }
+      #endif
+        return true;
+    }
+};
+
+int main() 
+{
+
+  
+  #ifdef HABILITAR_AUTH_ENROLES
+
+    Usuario ObjUAdmin("usuario1", "1234", "Administrador");
+    Usuario ObjUInvi("usuario2", "4321", "Invitado");
+
+    std::cout << "Usuario1 autenticado con Rol: " << Autenticador<Usuario>::Autenticar(ObjUAdmin, "1234", "Administrador") << std::endl;
+    std::cout << "Usuario2 autenticado con Rol: " << Autenticador<Usuario>::Autenticar(ObjUInvi, "4321", "Invitado") << std::endl;
+
+
+  #else
+
+    Usuario ObjUAdmin("usuario1", "1234");
+    Usuario ObjUInvi("usuario2", "4321");
+
+    std::cout << "Usuario1 autenticado sin Rol: " << Autenticador<Usuario>::Autenticar(ObjUAdmin, "1234") << std::endl;
+    std::cout << "Usuario2 autenticado sin Rol: " << Autenticador<Usuario>::Autenticar(ObjUInvi, "4321") << std::endl;
+
+  #endif
+
+    return 0;
+}

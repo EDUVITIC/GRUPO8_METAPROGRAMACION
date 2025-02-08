@@ -1,0 +1,24 @@
+<#
+    // Este T4 template genera dinámicamente una clase ValidadorUsuario con credenciales predefinidas.
+    // Puedes modificar este código para generar más validaciones o hacerlo más dinámico.
+#>
+
+<#@ template language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System" #>
+
+namespace MetaprogramacionAutenticacion
+{
+    public class ValidadorUsuario
+    {
+        public bool ValidarCredenciales(string nombreUsuario, string contraseña)
+        {
+            // Generación dinámica de código de validación
+            if (nombreUsuario == "usuario1" && contraseña == "clave1")
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+}
